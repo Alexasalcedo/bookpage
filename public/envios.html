@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+	<meta charset = "UTF-8">
+	<link rel = "stylesheet" href="style.css">
+	<title> Envio </title>
+</head>
+
+<body>
+<h2>Radio Buttons</h2>
+
+<p>Escoge el envio de tu preferencia:</p>
+
+<form action="/pedido" method="POST">
+	<fieldset>
+    <input type="radio" id="estadar" name="envio" value="Estandar">
+    <label for="estadar">Estandar</label><br>
+    <input type="radio" id="corto" name="envio" value="Corto">
+    <label for="corto">Corto</label><br>
+    <input type="radio" id="express" name="envio" value="Express">
+    <label for="express">Express</label>
+    <br><br>
+    <button type ="submit">Siguiente</button>
+  </fieldset>
+</form> 
+
+</body>
+</html>
