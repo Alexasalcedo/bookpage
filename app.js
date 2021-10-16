@@ -67,7 +67,7 @@ app.post('/view', function(req,res){
         ven = row.VENTAS
         gen = row.GENERO 
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
-        pagina += `<form action="/pruebas" method="POST">\
+        pagina += `<form action="/prueba" method="POST">\
         <fieldset>\
         <label for="fname">Nombre:</label><br>\
         <input type="text" id="nombrelib" name="nombrelib" value=${nom} disabled><br>\
@@ -95,9 +95,8 @@ app.post('/pedido', function(req,res){
     console.log("Entry pedidos");
   });
 
-// Cliente
-app.get('/cliente', function(req,res){
-    console.log("formulario de cliente");
+//client
+app.post('/client', function(req,res){
     res.sendFile(path.join(__dirname,'./public/clientes.html'));
 });
 
@@ -151,6 +150,11 @@ app.post('/prueba', function(req,res){
     <label for="fname">Precio:</label><br>\
     <input type="text" id="precio" name="precio" value=${pre} disabled><br>\
     <iframe src="/about" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\
+    <form action="/client" method="POST">\
+    <fieldset>\
+    <button type ="submit">Siguiente</button>\
+    </fieldset>\
+    </form>\
     </body>\
     </html>`;
     res.send(pagina);
