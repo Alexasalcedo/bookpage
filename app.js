@@ -10,6 +10,8 @@ var aut
 var pre
 var ven
 var gen
+var id
+var nomc
 
 var app = express();
 var server = http.createServer(app);
@@ -29,7 +31,7 @@ app.use(helmet());
 app.use(limiter);
 
 db.run('CREATE TABLE IF NOT EXISTS books(nombre TEXT, autor TEXT, genero TEXT, ventas INTEGER, precio INTEGER, inventario INTEGER)');
-
+db.run('CREATE TABLE IF NOT EXISTS client(id INTEGER, nombre TEXT)');
 
 app.get('/', function(req,res){
     res.sendFile(path.join(__dirname,'./public/form.html'));
@@ -65,7 +67,7 @@ app.post('/view', function(req,res){
         ven = row.VENTAS
         gen = row.GENERO 
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
-        pagina += `<form action="/prueba" method="POST">\
+        pagina += `<form action="/pruebas" method="POST">\
         <fieldset>\
         <label for="fname">Nombre:</label><br>\
         <input type="text" id="nombrelib" name="nombrelib" value=${nom} disabled><br>\
@@ -91,6 +93,52 @@ app.post('/view', function(req,res){
 app.post('/pedido', function(req,res){
     res.send("Pedido con envio tipo: "+req.body.envio);
     console.log("Entry pedidos");
+  });
+
+// Cliente
+app.get('/cliente', function(req,res){
+    console.log("formulario de cliente");
+    res.sendFile(path.join(__dirname,'./public/clientes.html'));
+});
+
+// Add clientes
+app.post('/add_cliente', function(req,res){
+    db.serialize(()=>{
+      db.run('INSERT INTO client(id, nombre) VALUES(?,?)', [req.body.idc, req.body.nombrec], function(err) {
+        if (err) {
+          return console.log(err.message);
+        }
+        console.log("Nuevo cliente ha sido agregado");
+        res.send("Nuevo cliente ha sido agregado= "+req.body.idc + req.body.nombrec);
+      });
+    });
+  });
+
+// log in
+app.post('/login', function(req,res){
+    db.serialize(()=>{
+      db.each('SELECT id IDC, nombre NOMBREC FROM client WHERE id =?', [req.body.idc], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
+        if(err){
+          res.send("Error encountered while displaying");
+          return console.error(err.message);
+        }
+        id = row.IDC
+        nomc = row.NOMBREC
+        let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+        pagina += `<form action="/prueba" method="POST">\
+        <fieldset>\
+        <label for="fname">ID:</label><br>\
+        <input type="text" id="idc" name="idc" value=${id} disabled><br>\
+        <label for="fname">Nombre:</label><br>\
+        <input type="text" id="nombrec" name="nombrec" value=${nomc} disabled><br>\
+        <a href="/" style="a.button">Regresar</a>\
+        </fieldset>\
+        </form>`;
+        pagina += '</body></html>';
+        res.send(pagina);
+        console.log("Entry displayed successfully");
+      });
+    });
   });
 
 // prueba

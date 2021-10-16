@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+	<meta charset = "UTF-8">
+	<link rel = "stylesheet" href="style.css">
+	<title> Clientes</title>
+</head>
+
+<body>
+	<header>
+		<h1>Clientes</h1>
+	</header>
+
+	<form action="/add_cliente" method="POST">
+		<fieldset>
+				<h3>Ingresa nuevo cliente</h3>
+				<label>ID cliente</label>
+				<input type ="text" id = 'idc' name="idc" placeholder="1,2,3..." required>
+				<br><br>
+
+				<label>Nombre</label>
+				<input type="text" id = "nombrec" name="nombrec" placeholder="Tom Cruise" required>
+				<br><br>
+
+				<button type ="reset">Reset</button>
+				<button type ="submit">Submit</button>
+		</fieldset>
+	</form>
+	<form action="/login" method="POST">
+		<fieldset>
+				<h3>Log In</h3>
+				<label>ID cliente</label>
+				<input type="text" id="idc" name="idc" placeholder="1,2,3..." required>
+				<br><br>
+				<button type ="reset">Reset</button>
+				<button type ="submit">Submit</button>
+				<br><br><br>
+		</fieldset>
+	</form>
+    <footer>
+		<hr>
+		<h4>Please enter 'http://localhost:3000/close' to close the database connection before closing this window</h4>
+	</footer>
+</body>
+</html>
