@@ -12,13 +12,14 @@ var ven
 var gen
 var id
 var nomc
-var env
-var val
+var env = 'Express'
+var val = 0
 var idp
 var tot
 var inv
 var estatus = 'Procesando'
-var recomendacion
+var carrito = []
+var suma_carrito = 0
 
 var app = express();
 var server = http.createServer(app);
@@ -38,6 +39,7 @@ app.use(limiter);
 db.run('CREATE TABLE IF NOT EXISTS books(nombre TEXT, autor TEXT, genero TEXT, ventas INTEGER, precio INTEGER, inventario INTEGER)');
 db.run('CREATE TABLE IF NOT EXISTS client(id INTEGER, nombre TEXT)');
 db.run('CREATE TABLE IF NOT EXISTS pedido(id INTEGER, nombre TEXT, precio INTEGER, envio TEXT, pnvio INTEGER, total INTEGER, estatus TEXT, idc INTEGER)');
+db.run('CREATE TABLE IF NOT EXISTS pedidogrande(id INTEGER, articulos INTEGER, nombre TEXT, precio INTEGER, envio TEXT, pnvio INTEGER, total INTEGER, estatus TEXT, idc INTEGER)');
 
 app.get('/', function(req,res){
     res.sendFile(path.join(__dirname,'./public/form.html'));
@@ -85,12 +87,142 @@ app.post('/view', function(req,res){
         <label for="fname">Genero:</label><br>\
         <input type="text" id="genero" name="genero" value=${gen} disabled><br>\
         <button type ="submit">Comprar</button>\
+        <a href="/vista_carrito" style="a.button">enviar al carrito</a>\
         </fieldset>\
         </form>`;
         pagina += '<iframe src="/recomendaciones" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\</body></html>';
         res.send(pagina);
         console.log("Detalles de libro");
       });
+    });
+});
+
+//vista de carrito
+app.get('/vista_carrito', function(req,res){
+    suma_carrito += pre
+    carrito.push(nom);
+    console.log("Entry" + nom);
+    let pagina=`<!DOCTYPE html>\
+    <html>\
+    <body>\
+    <label for="fname">Libros:</label><br>`;
+    carrito.forEach((row) => {
+        pagina +=`<br><input type="text" id="nombre" name="nombre" value=${row} disabled>`;
+    }); 
+    pagina +=`<br><label for="fname">Total:</label><br>\
+    <br><input type="text" id="total_carrito" name="total_carrito" value=${suma_carrito} disabled>\
+    <a href="/" style="a.button">Regresar</a>\
+    <a href="/compra_carrito" style="a.button">Comprar</a>\
+    </body></html>`;
+    res.send(pagina);
+});
+
+// compra_carrito
+app.get('/compra_carrito', function(req,res){
+    var pedido_final = "";
+    var pedido_pendiente = "";
+    tot = suma_carrito + val;
+    idp=Math.floor(Math.random() * 10001);
+    var disponible = 0;
+    var proximo = 0;
+    let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+    db.serialize(()=>{
+        carrito.forEach((lib) => {
+            db.each('SELECT inventario INVENTARIO FROM books WHERE nombre =?', [lib], function(err,row){
+                if(err){
+                  res.send("Error encountered while updating");
+                  return console.error(err.message);
+                }else if(row.INVENTARIO > 0){
+                    var x = row.INVENTARIO - 1
+                    db.run('UPDATE books SET inventario = ? WHERE nombre = ?', [x,lib], function(err){
+                        if(err){
+                          res.send("Error encountered while updating");
+                          return console.error(err.message);
+                        }
+                    });
+                    pedido_final += lib;
+                    disponible += 1
+                }else{
+                    pedido_pendiente += lib;
+                    proximo += 1
+                }
+            });
+        }); 
+        db.run('INSERT INTO pedidogrande(id, articulos, nombre, precio, envio, pnvio, total, estatus, idc) VALUES(?,?,?,?,?,?,?,?,?)', [idp, disponible, pedido_final, suma_carrito, env, val, tot, estatus, id], function(err) {
+          if (err) {
+            return console.log(err.message);
+          }else if(proximo > 0){
+            db.run('INSERT INTO pedidogrande(id, articulos, nombre, precio, envio, pnvio, total, estatus, idc) VALUES(?,?,?,?,?,?,?,?,?)', [idp+1, proximo, pedido_pendiente , 0, env, 0, 0, estatus, id], function(err) {
+              if (err) {
+                return console.log(err.message);
+              }else{
+                pagina += `<label for="fname">ID pedido:</label><br>\
+                <input type="text" id="idp" name="idp" value=${idp+1} disabled><br>\
+                <label for="fname">Articulos:</label><br>\
+                <input type="text" id="articulos" name="articulos" value=${proximo} disabled><br>\
+                <label for="fname">Nombre:</label><br>\
+                <input type="text" id="nombrelib" name="nombrelib" value=${pedido_pendiente} disabled><br>\
+                <label for="fname">Precio:</label><br>\
+                <input type="text" id="precio" name="precio" value=${0} disabled><br>\
+                <label for="fname">Envio:</label><br>\
+                <input type="text" id="envio" name="envio" value=${env} disabled><br>\
+                <label for="fname">Precio de envio:</label><br>\
+                <input type="text" id="val" name="val" value=${0} disabled><br>
+                <label for="fname">Total:</label><br>\
+                <input type="text" id="tot" name="tot" value=${0} disabled><br>
+                <label for="fname">Estatus:</label><br>\
+                <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
+                <label for="fname">ID Cliente:</label><br>\
+                <input type="text" id="idc" name="idc" value=${id} disabled>`;
+                pagina += `<label for="fname">ID pedido:</label><br>\
+                <input type="text" id="idp" name="idp" value=${idp} disabled><br>\
+                <label for="fname">Articulos:</label><br>\
+                <input type="text" id="articulos" name="articulos" value=${disponible} disabled><br>\
+                <label for="fname">Nombre:</label><br>\
+                <input type="text" id="nombrelib" name="nombrelib" value=${pedido_final} disabled><br>\
+                <label for="fname">Precio:</label><br>\
+                <input type="text" id="precio" name="precio" value=${suma_carrito} disabled><br>\
+                <label for="fname">Envio:</label><br>\
+                <input type="text" id="envio" name="envio" value=${env} disabled><br>\
+                <label for="fname">Precio de envio:</label><br>\
+                <input type="text" id="val" name="val" value=${val} disabled><br>
+                <label for="fname">Total:</label><br>\
+                <input type="text" id="tot" name="tot" value=${tot} disabled><br>
+                <label for="fname">Estatus:</label><br>\
+                <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
+                <label for="fname">ID Cliente:</label><br>\
+                <input type="text" id="idc" name="idc" value=${id} disabled><br>
+                <a href="/" style="a.button">Inicio</a>`;
+                pagina += '</body></html>';
+                res.send(pagina);
+                console.log("Un pedido ha sido completado");
+              }
+            });
+          }else {
+          pagina += `<label for="fname">ID pedido:</label><br>\
+          <input type="text" id="idp" name="idp" value=${idp} disabled><br>\
+          <label for="fname">Articulos:</label><br>\
+          <input type="text" id="articulos" name="articulos" value=${disponible} disabled><br>\
+          <label for="fname">Nombre:</label><br>\
+          <input type="text" id="nombrelib" name="nombrelib" value=${pedido_final} disabled><br>\
+          <label for="fname">Precio:</label><br>\
+          <input type="text" id="precio" name="precio" value=${suma_carrito} disabled><br>\
+          <label for="fname">Envio:</label><br>\
+          <input type="text" id="envio" name="envio" value=${env} disabled><br>\
+          <label for="fname">Precio de envio:</label><br>\
+          <input type="text" id="val" name="val" value=${val} disabled><br>
+          <label for="fname">Total:</label><br>\
+          <input type="text" id="tot" name="tot" value=${tot} disabled><br>
+          <label for="fname">Estatus:</label><br>\
+          <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
+          <label for="fname">ID Cliente:</label><br>\
+          <input type="text" id="idc" name="idc" value=${id} disabled><br>
+          <a href="/" style="a.button">Inicio</a>`;
+          pagina += '</body></html>';
+          res.send(pagina);
+          console.log("Un pedido ha sido completado");
+        }
+        });
     });
 });
 
