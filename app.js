@@ -16,6 +16,7 @@ var env
 var val
 var idp
 var tot
+var inv
 var estatus = 'Procesando'
 var recomendacion
 
@@ -27,9 +28,7 @@ const limiter = rateLimit({
   max: 100 // limit each IP to 100 requests per windowMs
 });
 
-
 var db = new sqlite3.Database('./database/shop.db');
-
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'./public')));
@@ -45,7 +44,7 @@ app.get('/', function(req,res){
 });
 
 
-// Add
+// Agrega libros
 app.post('/add', function(req,res){
     db.serialize(()=>{
       db.run('INSERT INTO books(nombre, autor, genero, ventas, precio, inventario) VALUES(?,?,?,?,?,?)', [req.body.nombre, req.body.autor,req.body.genero, req.body.ventas,req.body.precio, req.body.inventario], function(err) {
@@ -58,10 +57,10 @@ app.post('/add', function(req,res){
     });
   });
 
-// View
+// Detalles de libros
 app.post('/view', function(req,res){
     db.serialize(()=>{
-      db.each('SELECT nombre NOMBRE, autor AUTOR, precio PRECIO, ventas VENTAS,genero GENERO FROM books WHERE nombre =?', [req.body.nombre], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
+      db.each('SELECT nombre NOMBRE, autor AUTOR, precio PRECIO, ventas VENTAS,genero GENERO, inventario INVENTARIO FROM books WHERE nombre =?', [req.body.nombre], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
         if(err){
           res.send("Error encountered while displaying");
           return console.error(err.message);
@@ -71,6 +70,7 @@ app.post('/view', function(req,res){
         pre = row.PRECIO;
         ven = row.VENTAS;
         gen = row.GENERO;
+        inv = row.INVENTARIO
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
         pagina += `<form action="/prueba" method="POST">\
         <fieldset>\
@@ -94,7 +94,7 @@ app.post('/view', function(req,res){
     });
 });
 
-// pedido
+//recibe la informacion del envio
 app.post('/pedido', function(req,res){
     env=req.body.envio
     if(env == 'Estandar'){
@@ -108,12 +108,12 @@ app.post('/pedido', function(req,res){
     console.log("Entry pedidos");
   });
 
-//client
+//plantilla de clientes
 app.post('/client', function(req,res){
     res.sendFile(path.join(__dirname,'./public/clientes.html'));
 });
 
-// Add clientes
+// Agrega clientes
 app.post('/add_cliente', function(req,res){
     db.serialize(()=>{
       db.run('INSERT INTO client(id, nombre) VALUES(?,?)', [req.body.idc, req.body.nombrec], function(err) {
@@ -155,9 +155,16 @@ app.post('/login', function(req,res){
 
 //Vista general de pedido
 app.get('/vista_pedido', function(req,res){
-    tot = pre + val
+    inv = inv - 1;
+    tot = pre + val;
     idp=Math.floor(Math.random() * 101);
     db.serialize(()=>{
+        db.run('UPDATE books SET inventario = ? WHERE nombre = ?', [inv,nom], function(err){
+            if(err){
+              res.send("Error encountered while updating");
+              return console.error(err.message);
+            }
+        });
         db.run('INSERT INTO pedido(id, nombre, precio, envio, pnvio, total, estatus, idc) VALUES(?,?,?,?,?,?,?,?)', [idp, nom, pre, env, val, tot, estatus, id], function(err) {
           if (err) {
             return console.log(err.message);
@@ -178,7 +185,8 @@ app.get('/vista_pedido', function(req,res){
           <label for="fname">Estatus:</label><br>\
           <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
           <label for="fname">ID Cliente:</label><br>\
-          <input type="text" id="idc" name="idc" value=${id} disabled><br>`;
+          <input type="text" id="idc" name="idc" value=${id} disabled><br>
+          <a href="/" style="a.button">Siguiente</a>`;
           pagina += '</body></html>';
           res.send(pagina);
           console.log("Un pedido ha sido completado");
@@ -186,7 +194,7 @@ app.get('/vista_pedido', function(req,res){
       });
 });
 
-// prueba
+// pre-pedido
 app.post('/prueba', function(req,res){
     let pagina=`<!DOCTYPE html>\
     <html>\
@@ -207,7 +215,7 @@ app.post('/prueba', function(req,res){
     console.log("Entry compra");
 });
 
-//envio
+//plantilla de envio
 app.get('/about', function(req,res){
     console.log("Entry" + req.body);
     res.sendFile(path.join(__dirname,'./public/envios.html'));
@@ -265,6 +273,7 @@ app.get('/close', function(req,res){
     console.log("server is listening on port: 3000");
   });
 
+//recomendaciones
 app.post('/r', function(req,res){
     db.serialize(()=>{
         console.log(gen);
@@ -290,3 +299,31 @@ app.post('/r', function(req,res){
     });
 });
 
+//Consulta todos los pedidos
+app.post('/total_pedidos', function(req,res){
+    db.serialize(()=>{
+        console.log(gen);
+        db.all('SELECT id ID, total TOTAL, estatus ESTATUS, idc IDC FROM pedido', [], function(err,row){ 
+          if(err){
+            res.send("Error encountered while displaying");
+            return console.error(err.message);
+          }
+          let pagina=`<!DOCTYPE html>\
+            <html>\
+            <body>\
+            <label for="fname">Pedidos:</label><br>`;
+          row.forEach((row) => {
+            pagina +=`<br><input type="text" id="id" name="id" value=${row.ID} disabled>\
+            <label for="fname">Total:</label>\
+            <input type="text" id="total" name="total" value=${row.TOTAL} disabled>\
+            <label for="fname">Estatus:</label>\
+            <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled>
+            <label for="fname">ID cliente:</label>\
+            <input type="text" id="idc" name="idc" value=${row.IDC} disabled>`;
+          }); 
+          pagina +=`</body></html>`;
+          res.send(pagina);
+          console.log("todos los pedidos");
+        });
+    });
+});
