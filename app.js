@@ -21,6 +21,7 @@ var estatus = 'Procesando'
 var carrito = []
 var suma_carrito = 0
 var max = 0
+var nump = 0
 
 var app = express();
 var server = http.createServer(app);
@@ -468,6 +469,10 @@ app.post('/r', function(req,res){
 
 //Consulta todos los pedidos
 app.post('/total_pedidos', function(req,res){
+    let pagina=`<!DOCTYPE html>\
+    <html>\
+    <body>\
+    <label for="fname">Pedidos:</label><br>`;
     db.serialize(()=>{
         console.log(gen);
         db.all('SELECT id ID, total TOTAL, estatus ESTATUS, idc IDC FROM pedido', [], function(err,row){ 
@@ -475,10 +480,6 @@ app.post('/total_pedidos', function(req,res){
             res.send("Error encountered while displaying");
             return console.error(err.message);
           }
-          let pagina=`<!DOCTYPE html>\
-            <html>\
-            <body>\
-            <label for="fname">Pedidos:</label><br>`;
           row.forEach((row) => {
             pagina +=`<br><input type="text" id="id" name="id" value=${row.ID} disabled>\
             <label for="fname">Total:</label>\
@@ -489,8 +490,27 @@ app.post('/total_pedidos', function(req,res){
             <input type="text" id="idc" name="idc" value=${row.IDC} disabled>`;
           }); 
           pagina +=`</body></html>`;
+          console.log("todos los chicos pedidos");
+        });
+        db.all('SELECT id ID,articulos ARTICULOS, total TOTAL, estatus ESTATUS, idc IDC FROM pedidogrande', [], function(err,row){ 
+          if(err){
+            res.send("Error encountered while displaying");
+            return console.error(err.message);
+          }
+          row.forEach((row) => {
+            pagina +=`<br><input type="text" id="id" name="id" value=${row.ID} disabled>\
+            <label for="fname">Articulos:</label>\
+            <input type="text" id="articulos" name="articulos" value=${row.ARTICULOS} disabled>\
+            <label for="fname">Total:</label>\
+            <input type="text" id="total" name="total" value=${row.TOTAL} disabled>\
+            <label for="fname">Estatus:</label>\
+            <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled>
+            <label for="fname">ID cliente:</label>\
+            <input type="text" id="idc" name="idc" value=${row.IDC} disabled>`;
+          }); 
+          pagina +=`</body></html>`;
           res.send(pagina);
-          console.log("todos los pedidos");
+          console.log("todos los  grandes pedidos");
         });
     });
 });
@@ -530,3 +550,123 @@ app.post('/mas_vendido', function(req,res){
   });
 });
 
+// info cliente
+app.post('/info', function(req,res){
+  db.serialize(()=>{
+    db.each('SELECT id IDC, nombre NOMBREC FROM client WHERE id =?', [req.body.idc], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
+      if(err){
+        res.send("Error encountered while displaying");
+        return console.error(err.message);
+      }
+      id = row.IDC
+      nomc = row.NOMBREC
+      let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+      pagina += `<form action="/id_detalles" method="POST">\
+      <fieldset>\
+      <label for="fname">ID:</label><br>\
+      <input type="text" id="idc" name="idc" value=${id} disabled><br>\
+      <label for="fname">Nombre:</label><br>\
+      <input type="text" id="nombrec" name="nombrec" value=${nomc} disabled><br>\
+      <a href="/pedidos_cliente" style="a.button">Todos tus pedidos</a>\
+      <a href="/entry_id" style="a.button">Consulta pedido</a>\
+      </fieldset>\
+      </form>`;
+      pagina += '</body></html>';
+      res.send(pagina);
+      console.log("Entry displayed successfully");
+    });
+  });
+});
+
+//Consulta todos los pedidos
+app.get('/pedidos_cliente', function(req,res){
+  let pagina=`<!DOCTYPE html>\
+  <html>\
+  <body>\
+  <label for="fname">Pedidos:</label><br>`;
+  db.serialize(()=>{
+      console.log(gen);
+      db.all('SELECT id ID, total TOTAL, estatus ESTATUS FROM pedido WHERE idc = ?', [id], function(err,row){ 
+        if(err){
+          res.send("Error encountered while displaying");
+          return console.error(err.message);
+        }
+        row.forEach((row) => {
+          pagina +=`<br><input type="text" id="id" name="id" value=${row.ID} disabled>\
+          <label for="fname">Total:</label>\
+          <input type="text" id="total" name="total" value=${row.TOTAL} disabled>\
+          <label for="fname">Estatus:</label>\
+          <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled>`;
+        }); 
+        console.log("todos los pedidos chicos");
+      });
+      db.all('SELECT id ID, articulos ARTICULOS, total TOTAL, estatus ESTATUS FROM pedidogrande WHERE idc = ?', [id], function(err,row){ 
+        if(err){
+          res.send("Error encountered while displaying");
+          return console.error(err.message);
+        }
+        row.forEach((row) => {
+          pagina +=`<br><input type="text" id="id" name="id" value=${row.ID} disabled>\
+          <label for="fname">Aticulos:</label>\
+          <input type="text" id="articulos" name="articulos" value=${row.ARTICULOS} disabled>\
+          <label for="fname">Total:</label>\
+          <input type="text" id="total" name="total" value=${row.TOTAL} disabled>\
+          <label for="fname">Estatus:</label>\
+          <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled>`;
+        }); 
+        pagina +=`</body></html>`;
+        res.send(pagina);
+        console.log("todos los pedidos grandes");
+      });
+  });
+});
+
+//plantilla id de pedido pra detalles 
+app.get('/entry_id', function(req,res){
+  let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+  pagina += `<form action="/id_detalles" method="POST">\
+  <fieldset>\
+  <label for="fname">ID pedido:</label><br>\
+  <input type="text" id="nupedido" name="nupedido" placeholder="1,2,3..." required><br>\
+  <button type ="submit">Siguiente</button>\
+  </fieldset>\
+  </form>`;
+  pagina +='</body></html>';
+  res.send(pagina);
+});
+
+//id de pedido pra detalles 
+app.post('/id_detalles', function(req,res){
+  nump = req.body.nupedido;
+  let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+  pagina += `<a href="/detalles_cliente" style="a.button">Siguiente</a>`;
+    pagina +='</body></html>';
+    res.send(pagina);
+});
+
+app.get('/detalles_cliente', function(req,res){
+  db.serialize(()=>{
+      db.each('SELECT nombre NOMBRE, precio PRECIO, envio ENVIO, pnvio PENVIO, total TOTAL, estatus ESTATUS FROM pedido WHERE id = ?', [nump], function(err,row) {
+        if (err) {
+          return console.log(err.message);
+        }
+        let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+        pagina += `
+        <label for="fname">Nombre:</label><br>\
+        <input type="text" id="nombrelib" name="nombrelib" value=${row.NOMBRE} disabled><br>\
+        <label for="fname">Precio:</label><br>\
+        <input type="text" id="precio" name="precio" value=${row.PRECIO} disabled><br>\
+        <label for="fname">Envio:</label><br>\
+        <input type="text" id="envio" name="envio" value=${row.ENVIO} disabled><br>\
+        <label for="fname">Precio de envio:</label><br>\
+        <input type="text" id="val" name="val" value=${row.PENVIO} disabled><br>\
+        <label for="fname">Total:</label><br>\
+        <input type="text" id="tot" name="tot" value=${row.TOTAL} disabled><br>\
+        <label for="fname">Estatus:</label><br>\
+        <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled><br>\
+        <a href="/" style="a.button">Siguiente</a>`;
+        pagina += '</body></html>';
+        res.send(pagina);
+      });
+    });
+});
