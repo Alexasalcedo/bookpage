@@ -14,6 +14,9 @@ var id
 var nomc
 var env
 var val
+var idp
+var tot
+var estatus = 'Procesando'
 var recomendacion
 
 var app = express();
@@ -35,6 +38,7 @@ app.use(limiter);
 
 db.run('CREATE TABLE IF NOT EXISTS books(nombre TEXT, autor TEXT, genero TEXT, ventas INTEGER, precio INTEGER, inventario INTEGER)');
 db.run('CREATE TABLE IF NOT EXISTS client(id INTEGER, nombre TEXT)');
+db.run('CREATE TABLE IF NOT EXISTS pedido(id INTEGER, nombre TEXT, precio INTEGER, envio TEXT, pnvio INTEGER, total INTEGER, estatus TEXT, idc INTEGER)');
 
 app.get('/', function(req,res){
     res.sendFile(path.join(__dirname,'./public/form.html'));
@@ -51,9 +55,7 @@ app.post('/add', function(req,res){
         console.log("Nuevo libro ha sido agregado");
         res.send("Nuevo libro ha sido agregado= "+req.body.nombre + req.body.autor + req.body.genero + req.body.ventas + req.body.precio + req.body.inventario);
       });
-  
     });
-  
   });
 
 // View
@@ -102,7 +104,7 @@ app.post('/pedido', function(req,res){
     } else {
         val = 100
     }
-    res.send("Pedido con envio tipo: "+req.body.envio);
+    res.send("Pedido con envio tipo: "+req.body.envio+val);
     console.log("Entry pedidos");
   });
 
@@ -141,7 +143,7 @@ app.post('/login', function(req,res){
         <input type="text" id="idc" name="idc" value=${id} disabled><br>\
         <label for="fname">Nombre:</label><br>\
         <input type="text" id="nombrec" name="nombrec" value=${nomc} disabled><br>\
-        <a href="/" style="a.button">Regresar</a>\
+        <a href="/vista_pedido" style="a.button">Siguiente</a>\
         </fieldset>\
         </form>`;
         pagina += '</body></html>';
@@ -150,6 +152,39 @@ app.post('/login', function(req,res){
       });
     });
   });
+
+//Vista general de pedido
+app.get('/vista_pedido', function(req,res){
+    tot = pre + val
+    idp=Math.floor(Math.random() * 101);
+    db.serialize(()=>{
+        db.run('INSERT INTO pedido(id, nombre, precio, envio, pnvio, total, estatus, idc) VALUES(?,?,?,?,?,?,?,?)', [idp, nom, pre, env, val, tot, estatus, id], function(err) {
+          if (err) {
+            return console.log(err.message);
+          }
+          let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+          pagina += `<label for="fname">ID pedido:</label><br>\
+          <input type="text" id="idp" name="idp" value=${idp} disabled><br>\
+          <label for="fname">Nombre:</label><br>\
+          <input type="text" id="nombrelib" name="nombrelib" value=${nom} disabled><br>\
+          <label for="fname">Precio:</label><br>\
+          <input type="text" id="precio" name="precio" value=${pre} disabled><br>\
+          <label for="fname">Envio:</label><br>\
+          <input type="text" id="envio" name="envio" value=${env} disabled><br>\
+          <label for="fname">Precio de envio:</label><br>\
+          <input type="text" id="val" name="val" value=${val} disabled><br>
+          <label for="fname">Total:</label><br>\
+          <input type="text" id="tot" name="tot" value=${tot} disabled><br>
+          <label for="fname">Estatus:</label><br>\
+          <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
+          <label for="fname">ID Cliente:</label><br>\
+          <input type="text" id="idc" name="idc" value=${id} disabled><br>`;
+          pagina += '</body></html>';
+          res.send(pagina);
+          console.log("Un pedido ha sido completado");
+        });
+      });
+});
 
 // prueba
 app.post('/prueba', function(req,res){
@@ -233,7 +268,7 @@ app.get('/close', function(req,res){
 app.post('/r', function(req,res){
     db.serialize(()=>{
         console.log(gen);
-        db.each('SELECT nombre NOMBRE,autor AUTOR FROM books WHERE genero =? and nombre !=?', [gen,nom], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
+        db.all('SELECT nombre NOMBRE,autor AUTOR FROM books WHERE genero =? and nombre !=?', [gen,nom], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
           if(err){
             res.send("Error encountered while displaying");
             return console.error(err.message);
@@ -241,13 +276,17 @@ app.post('/r', function(req,res){
           let pagina=`<!DOCTYPE html>\
             <html>\
             <body>\
-            <label for="fname">Recomendacion:</label><br>\
-            <input type="text" id="nombre" name="nombre" value=${row.NOMBRE} disabled>\
+            <label for="fname">Recomendacion:</label><br>`;
+          row.forEach((row) => {
+            console.log(row.NOMBRE,row.AUTOR);
+            pagina +=`<br><input type="text" id="nombre" name="nombre" value=${row.NOMBRE} disabled>\
             <label for="fname">Autor:</label>\
-            <input type="text" id="autor" name="autor" value=${row.AUTOR} disabled>\
-            </body></html>`;
+            <input type="text" id="autor" name="autor" value=${row.AUTOR} disabled>`;
+          }); 
+          pagina +=`</body></html>`;
           res.send(pagina);
           console.log("recomendaciones");
         });
     });
 });
+
