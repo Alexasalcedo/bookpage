@@ -9,105 +9,39 @@
 	<header>
 		<h1>Libros</h1>
 	</header>
-
-	<form action="/add" method="POST">
-		<fieldset>
-				<h3>Agrega libro</h3>
-				<label>Nombre</label>
-				<input type ="text" id = 'nombre' name="nombre" placeholder="titulo del libro" required>
-				<br><br>
-
-				<label>Autor</label>
-				<input type="text" id = "autor" name="autor" placeholder="escritor" required>
-				<br><br>
-
-                <label>Precio</label>
-				<input type ="text" id = "precio" name="precio" placeholder="$" required>
-				<br><br>
-
-				<label>Ventas</label>
-				<input type="text" id = "ventas" name="ventas" placeholder="0" required>
-				<br><br>
-
-                <label>Genero</label>
-				<input type ="text" id = "genero" name="genero" placeholder="Romance,accion,etc" required>
-				<br><br>
-
-				<label>Inventario</label>
-				<input type="text" id = "inventario" name="inventario" placeholder="0,1,2..." required>
-				<br><br>
-
-				<button type ="reset">Reset</button>
-				<button type ="submit">Submit</button>
-		</fieldset>
-	</form>
+	<ul>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Clientes</a>
+			<div class="dropdown-content">
+			<a href="signup.html">Sign Up</a>
+			<a href="login.html">Log In</a>
+			</div>
+		</li>	
+		<li><a href="pedido.html">Pedidos</a></li>
+		<li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Datos</a>
+			<div class="dropdown-content">
+			<a href="agrega.html">Agrega libros</a>
+			<a href="actualiza.html">Actualiza inventario</a>
+			<a href="borra.html">Borra un libro</a>
+			</div>
+		</li>
+	</ul>
     <form action="/view" method="POST">
 		<fieldset>
 				<h3>Busqueda de un libro</h3>
 				<label>Nombre del libro</label>
-				<input type="text" id="nombre" name="nombre" placeholder="titulo de libro" required>
+				<br><br>
+				<input type="text" id="nombre" name="nombre" placeholder="Search.."required>
 				<br><br>
 				<button type ="reset">Reset</button>
 				<button type ="submit">Submit</button>
 				<br><br><br>
 		</fieldset>
 	</form>
-    <form action="/update" method="POST">
+	<form action="/mas_vendido" method="POST">
 		<fieldset>
-				<h3>Actualiza Inventario</h3>
-				<label>Nombre de libro:</label>
-				<input type ="text" id = 'nombre' name="nombre" placeholder="titulo de libro" required>
-				<br><br>
-
-				<label>Inventario:</label>
-				<input type="text" id = "inventario" name="inventario" placeholder="0" required>
-				<br><br>
-
-				<button type ="reset">Reset</button>
-				<button type ="submit">Submit</button>
-		</fieldset>
-	</form>
-    <form action="/delete" method="POST">
-		<fieldset>
-				<h3>Borra un libro</h3>
-				<label>Nombre de libro</label>
-				<input type ="text" id = 'nombre' name="nombre" placeholder="titulo de libro" required>
-				<br><br>
-
-				<button type ="reset">Reset</button>
-				<button type ="submit">Submit</button>
-				<br><br><br>
-		</fieldset>
-	</form>
-    <form action="/add_cliente" method="POST">
-		<fieldset>
-				<h3>Ingresa nuevo cliente</h3>
-				<label>ID cliente</label>
-				<input type ="text" id = 'idc' name="idc" placeholder="1,2,3..." required>
-				<br><br>
-
-				<label>Nombre</label>
-				<input type="text" id = "nombrec" name="nombrec" placeholder="Tom Cruise" required>
-				<br><br>
-
-				<button type ="reset">Reset</button>
-				<button type ="submit">Submit</button>
-		</fieldset>
-	</form>
-	<form action="/login" method="POST">
-		<fieldset>
-				<h3>Log In</h3>
-				<label>ID cliente</label>
-				<input type="text" id="idc" name="idc" placeholder="1,2,3..." required>
-				<br><br>
-				<button type ="reset">Reset</button>
-				<button type ="submit">Submit</button>
-				<br><br><br>
-		</fieldset>
-	</form>
-    <form action="/total_pedidos" method="POST">
-		<fieldset>
-				<h3>Todos los pedidos</h3>
+				<h3>Libro mas vendido</h3>
 				<button type ="submit">Submit</button>
 				<br><br><br>
 		</fieldset>

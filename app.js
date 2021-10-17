@@ -20,6 +20,7 @@ var inv
 var estatus = 'Procesando'
 var carrito = []
 var suma_carrito = 0
+var max = 0
 
 var app = express();
 var server = http.createServer(app);
@@ -73,6 +74,7 @@ app.post('/view', function(req,res){
         ven = row.VENTAS;
         gen = row.GENERO;
         inv = row.INVENTARIO
+        let img = ".image/Tierra.jpg"
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
         pagina += `<form action="/prueba" method="POST">\
         <fieldset>\
@@ -86,13 +88,14 @@ app.post('/view', function(req,res){
         <input type="text" id="ventas" name="ventas" value=${ven} disabled><br>\
         <label for="fname">Genero:</label><br>\
         <input type="text" id="genero" name="genero" value=${gen} disabled><br>\
+        <iframe src="/image" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\
         <button type ="submit">Comprar</button>\
         <a href="/vista_carrito" style="a.button">enviar al carrito</a>\
         </fieldset>\
         </form>`;
         pagina += '<iframe src="/recomendaciones" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\</body></html>';
         res.send(pagina);
-        console.log("Detalles de libro");
+        console.log("Detalles de libro" + img);
       });
     });
 });
@@ -139,6 +142,18 @@ app.get('/compra_carrito', function(req,res){
                           res.send("Error encountered while updating");
                           return console.error(err.message);
                         }
+                    });
+                    db.each('SELECT ventas VENTAS FROM books WHERE nombre = ?', [lib], function(err,row){
+                      if(err){
+                        res.send("Error encountered while updating");
+                        return console.error(err.message);
+                      }ven= row.VENTAS + 1
+                    });
+                    db.run('UPDATE books SET ventas = ? WHERE nombre = ?', [ven,lib], function(err){
+                      if(err){
+                        res.send("Error encountered while updating");
+                        return console.error(err.message);
+                      }
                     });
                     pedido_final += lib;
                     disponible += 1
@@ -291,11 +306,25 @@ app.get('/vista_pedido', function(req,res){
     tot = pre + val;
     idp=Math.floor(Math.random() * 101);
     db.serialize(()=>{
+        db.each('SELECT ventas VENTAS FROM books WHERE nombre =?', [nom], function(err,row){
+            if(err){
+              res.send("Error encountered while updating");
+              return console.error(err.message);
+            }
+            ven= row.VENTAS + 1
+        });
         db.run('UPDATE books SET inventario = ? WHERE nombre = ?', [inv,nom], function(err){
             if(err){
               res.send("Error encountered while updating");
               return console.error(err.message);
             }
+        });
+        db.run('UPDATE books SET ventas = ? WHERE nombre = ?', [ven,nom], function(err){
+          if(err){
+            res.send("Error encountered while updating");
+            return console.error(err.message);
+          }
+          console.log(ven);
         });
         db.run('INSERT INTO pedido(id, nombre, precio, envio, pnvio, total, estatus, idc) VALUES(?,?,?,?,?,?,?,?)', [idp, nom, pre, env, val, tot, estatus, id], function(err) {
           if (err) {
@@ -351,6 +380,12 @@ app.post('/prueba', function(req,res){
 app.get('/about', function(req,res){
     console.log("Entry" + req.body);
     res.sendFile(path.join(__dirname,'./public/envios.html'));
+});
+
+//plantilla de envio
+app.get('/image', function(req,res){
+  console.log("Entry" + req.body);
+  res.sendFile(path.join(__dirname,`./image/${nom}.jpg`));
 });
 
 //recomendacionesview
@@ -459,3 +494,39 @@ app.post('/total_pedidos', function(req,res){
         });
     });
 });
+
+//libro mas vendido
+app.post('/mas_vendido', function(req,res){
+  db.serialize(()=>{
+      db.all('SELECT ventas VENTAS FROM books', [], function(err,rows){
+        if(err){
+          res.send("Error encountered while updating");
+          return console.error(err.message);
+        }
+        rows.forEach((rows) => {
+          if(rows.VENTAS > max){
+            max = rows.VENTAS
+          }
+          console.log(rows);
+        });
+        console.log(max);
+      });
+      db.all('SELECT nombre NOMBRE FROM books WHERE ventas = ?', [max], function(err,row){ 
+        if(err){
+          res.send("Error encountered while displaying");
+          return console.error(err.message);
+        }
+        let pagina=`<!DOCTYPE html>\
+          <html>\
+          <body>\
+          <label for="fname">Nombre:</label><br>`;
+          pagina +=`<br><input type="text" id="nombre" name="nombre" value=${row.NOMBRE} disabled>\
+          <label for="fname">Ventas:</label>\
+          <input type="text" id="ventas" name="ventas" value=${max} disabled>`;
+        pagina +=`</body></html>`;
+        res.send(pagina);
+        console.log("mas vendido");
+      });
+  });
+});
+

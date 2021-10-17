@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+	<meta charset = "UTF-8">
+	<link rel = "stylesheet" href="style.css">
+	<title> Last Book Shop </title>
+</head>
+<body>
+	<header>
+		<h1>Libros</h1>
+	</header>
+    </form>
+    <form action="/update" method="POST">
+		<fieldset>
+				<h3>Actualiza Inventario</h3>
+				<label>Nombre de libro:</label>
+				<input type ="text" id = 'nombre' name="nombre" placeholder="titulo de libro" required>
+				<br><br>
+
+				<label>Inventario:</label>
+				<input type="text" id = "inventario" name="inventario" placeholder="0" required>
+				<br><br>
+
+				<button type ="reset">Reset</button>
+				<button type ="submit">Submit</button>
+		</fieldset>
+	</form>
+    <a href="/" style="a.button">Regresa</a>
+    <footer>
+		<hr>
+		<h4>Please enter 'http://localhost:3000/close' to close the database connection before closing this window</h4>
+	</footer>
+</body>
+</html>
