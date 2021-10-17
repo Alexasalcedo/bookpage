@@ -12,6 +12,9 @@ var ven
 var gen
 var id
 var nomc
+var env
+var val
+var recomendacion
 
 var app = express();
 var server = http.createServer(app);
@@ -61,11 +64,11 @@ app.post('/view', function(req,res){
           res.send("Error encountered while displaying");
           return console.error(err.message);
         }
-        nom = row.NOMBRE
-        aut = row.AUTOR
-        pre = row.PRECIO
-        ven = row.VENTAS
-        gen = row.GENERO 
+        nom = row.NOMBRE;
+        aut = row.AUTOR;
+        pre = row.PRECIO;
+        ven = row.VENTAS;
+        gen = row.GENERO;
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
         pagina += `<form action="/prueba" method="POST">\
         <fieldset>\
@@ -82,7 +85,7 @@ app.post('/view', function(req,res){
         <button type ="submit">Comprar</button>\
         </fieldset>\
         </form>`;
-        pagina += '</body></html>';
+        pagina += '<iframe src="/recomendaciones" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\</body></html>';
         res.send(pagina);
         console.log("Detalles de libro");
       });
@@ -91,6 +94,14 @@ app.post('/view', function(req,res){
 
 // pedido
 app.post('/pedido', function(req,res){
+    env=req.body.envio
+    if(env == 'Estandar'){
+        val = 0
+    } else if(env == 'Corto'){
+        val = 50
+    } else {
+        val = 100
+    }
     res.send("Pedido con envio tipo: "+req.body.envio);
     console.log("Entry pedidos");
   });
@@ -167,6 +178,12 @@ app.get('/about', function(req,res){
     res.sendFile(path.join(__dirname,'./public/envios.html'));
 });
 
+//recomendacionesview
+app.get('/recomendaciones', function(req,res){
+    console.log("Entry" + req.body);
+    res.sendFile(path.join(__dirname,'./public/recom.html'));
+});
+
 //Update
 app.post('/update', function(req,res){
     db.serialize(()=>{
@@ -212,3 +229,25 @@ app.get('/close', function(req,res){
   server.listen(3000, function(){
     console.log("server is listening on port: 3000");
   });
+
+app.post('/r', function(req,res){
+    db.serialize(()=>{
+        console.log(gen);
+        db.each('SELECT nombre NOMBRE,autor AUTOR FROM books WHERE genero =? and nombre !=?', [gen,nom], function(err,row){     //db.each() is only one which is funtioning while reading data from the DB
+          if(err){
+            res.send("Error encountered while displaying");
+            return console.error(err.message);
+          }
+          let pagina=`<!DOCTYPE html>\
+            <html>\
+            <body>\
+            <label for="fname">Recomendacion:</label><br>\
+            <input type="text" id="nombre" name="nombre" value=${row.NOMBRE} disabled>\
+            <label for="fname">Autor:</label>\
+            <input type="text" id="autor" name="autor" value=${row.AUTOR} disabled>\
+            </body></html>`;
+          res.send(pagina);
+          console.log("recomendaciones");
+        });
+    });
+});
