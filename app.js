@@ -569,6 +569,7 @@ app.post('/info', function(req,res){
       <input type="text" id="nombrec" name="nombrec" value=${nomc} disabled><br>\
       <a href="/pedidos_cliente" style="a.button">Todos tus pedidos</a>\
       <a href="/entry_id" style="a.button">Consulta pedido</a>\
+      <a href="/entry_idG" style="a.button">Consulta pedido grandes</a>\
       </fieldset>\
       </form>`;
       pagina += '</body></html>';
@@ -652,6 +653,58 @@ app.get('/detalles_cliente', function(req,res){
         }
         let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
         pagina += `
+        <label for="fname">Nombre:</label><br>\
+        <input type="text" id="nombrelib" name="nombrelib" value=${row.NOMBRE} disabled><br>\
+        <label for="fname">Precio:</label><br>\
+        <input type="text" id="precio" name="precio" value=${row.PRECIO} disabled><br>\
+        <label for="fname">Envio:</label><br>\
+        <input type="text" id="envio" name="envio" value=${row.ENVIO} disabled><br>\
+        <label for="fname">Precio de envio:</label><br>\
+        <input type="text" id="val" name="val" value=${row.PENVIO} disabled><br>\
+        <label for="fname">Total:</label><br>\
+        <input type="text" id="tot" name="tot" value=${row.TOTAL} disabled><br>\
+        <label for="fname">Estatus:</label><br>\
+        <input type="text" id="estatus" name="estatus" value=${row.ESTATUS} disabled><br>\
+        <a href="/" style="a.button">Siguiente</a>`;
+        pagina += '</body></html>';
+        res.send(pagina);
+      });
+    });
+});
+
+//plantilla id de pedido pra detalles 
+app.get('/entry_idG', function(req,res){
+  let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+  pagina += `<form action="/id_detallesG" method="POST">\
+  <fieldset>\
+  <label for="fname">ID pedido:</label><br>\
+  <input type="text" id="nupedido" name="nupedido" placeholder="1,2,3..." required><br>\
+  <button type ="submit">Siguiente</button>\
+  </fieldset>\
+  </form>`;
+  pagina +='</body></html>';
+  res.send(pagina);
+});
+
+//id de pedido pra detalles 
+app.post('/id_detallesG', function(req,res){
+  nump = req.body.nupedido;
+  let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+  pagina += `<a href="/detalles_clienteG" style="a.button">Siguiente</a>`;
+    pagina +='</body></html>';
+    res.send(pagina);
+});
+
+app.get('/detalles_clienteG', function(req,res){
+  db.serialize(()=>{
+      db.each('SELECT articulos ARTICULOS, nombre NOMBRE, precio PRECIO, envio ENVIO, pnvio PENVIO, total TOTAL, estatus ESTATUS FROM pedidogrande WHERE id = ?', [nump], function(err,row) {
+        if (err) {
+          return console.log(err.message);
+        }
+        let pagina='<!doctype html><html><head><link rel = "stylesheet" href="style.css"></head><body>';
+        pagina += `
+        <label for="fname">Articulos:</label><br>\
+        <input type="text" id="Articulos" name="Articulos" value=${row.ARTICULOS} disabled><br>\
         <label for="fname">Nombre:</label><br>\
         <input type="text" id="nombrelib" name="nombrelib" value=${row.NOMBRE} disabled><br>\
         <label for="fname">Precio:</label><br>\
