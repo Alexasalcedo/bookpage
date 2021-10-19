@@ -166,8 +166,9 @@ app.get('/compra_carrito', function(req,res){
                       if(err){
                         res.send("Error encountered while updating");
                         return console.error(err.message);
-                      }ven= row.VENTAS + 1
+                      }ven= row.VENTAS
                     });
+                    ven += 1
                     db.run('UPDATE books SET ventas = ? WHERE nombre = ?', [ven,lib], function(err){
                       if(err){
                         res.send("Error encountered while updating");
@@ -340,8 +341,9 @@ app.get('/vista_pedido', function(req,res){
               res.send("Error encountered while updating");
               return console.error(err.message);
             }
-            ven= row.VENTAS + 1
+            ven= row.VENTAS
         });
+        ven += 1
         db.run('UPDATE books SET inventario = ? WHERE nombre = ?', [inv,nom], function(err){
             if(err){
               res.send("Error encountered while updating");
