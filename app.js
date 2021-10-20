@@ -192,7 +192,7 @@ app.get('/compra_carrito', function(req,res){
               if (err) {
                 return console.log(err.message);
               }else{
-                pagina += `<label for="fname">ID pedido:</label><br>\
+                pagina += `<label for="fname">ID pedido (En espera):</label><br>\
                 <input type="text" id="idp" name="idp" value=${idp+1} disabled><br>\
                 <label for="fname">Articulos:</label><br>\
                 <input type="text" id="articulos" name="articulos" value=${proximo} disabled><br>\
@@ -210,7 +210,7 @@ app.get('/compra_carrito', function(req,res){
                 <input type="text" id="estatus" name="estatus" value=${estatus} disabled><br>
                 <label for="fname">ID Cliente:</label><br>\
                 <input type="text" id="idc" name="idc" value=${id} disabled>`;
-                pagina += `<label for="fname">ID pedido:</label><br>\
+                pagina += `<label for="fname">ID pedido (Disponible):</label><br>\
                 <input type="text" id="idp" name="idp" value=${idp} disabled><br>\
                 <label for="fname">Articulos:</label><br>\
                 <input type="text" id="articulos" name="articulos" value=${disponible} disabled><br>\
