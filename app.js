@@ -21,6 +21,7 @@ var estatus = 'Procesando'
 var carrito = []
 var suma_carrito = 0
 var max = 0
+var maxC = 0
 var nump = 0
 
 var app = express();
@@ -282,8 +283,25 @@ app.post('/client', function(req,res){
 
 // Agrega clientes
 app.post('/add_cliente', function(req,res){
+    var prueba
     db.serialize(()=>{
-      db.run('INSERT INTO client(id, nombre) VALUES(?,?)', [req.body.idc, req.body.nombrec], function(err) {
+      db.all('SELECT id ID FROM client', [], function(err,rows){
+        if(err){
+          res.send("Error encountered while updating");
+          return console.error(err.message);
+        }
+        rows.forEach((rows) => {
+          if(rows.ID> maxC){
+            maxC = rows.ID;
+          }
+          prueba = maxC
+          console.log(rows);
+        });
+        console.log(maxC);
+      });
+      prueba += 1;
+      maxC += 1;
+      db.run('INSERT INTO client(id, nombre) VALUES(?,?)', [prueba, req.body.nombrec], function(err) {
         if (err) {
           return console.log(err.message);
         }
@@ -292,7 +310,7 @@ app.post('/add_cliente', function(req,res){
         pagina += `<h1>Bienvenid@!</h1><form action="/prueba" method="POST">\
         <fieldset>\
         <label for="fname">ID:</label><br>\
-        <input type="text" id="idc" name="idc" value=${req.body.idc} disabled><br>\
+        <input type="text" id="idc" name="idc" value=${prueba} disabled><br>\
         <label for="fname">Nombre:</label><br>\
         <input type="text" id="nombrec" name="nombrec" value=${req.body.nombrec} disabled><br>\
         </fieldset>\
@@ -302,6 +320,8 @@ app.post('/add_cliente', function(req,res){
       });
     });
   });
+
+
 
 // log in
 app.post('/login', function(req,res){
@@ -474,6 +494,20 @@ app.post('/delete', function(req,res){
     });
   
   });
+
+// Delete
+app.get('/deleteID', function(req,res){
+  db.serialize(()=>{
+    db.run('DELETE FROM client WHERE id = ? AND nombre != ?', [0,'Alexa'], function(err) {
+      if (err) {
+        res.send("Error encountered while deleting");
+        return console.error(err.message);
+      }
+      console.log("Entry deleted");
+    });
+  });
+
+});
 
 // Closing the database connection.
 app.get('/close', function(req,res){
