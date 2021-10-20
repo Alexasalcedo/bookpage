@@ -19,10 +19,10 @@ var tot
 var inv
 var estatus = 'Procesando'
 var carrito = []
-var suma_carrito = 0
-var max = 0
-var maxC = 0
-var nump = 0
+var suma_carrito = 0;
+var MAXV = 0;
+var maxC = 0;
+var nump = 0;
 
 var app = express();
 var server = http.createServer(app);
@@ -142,6 +142,7 @@ app.get('/vista_carrito', function(req,res){
 
 // compra_carrito
 app.get('/compra_carrito', function(req,res){
+    var AuxV;
     var pedido_final = "";
     var pedido_pendiente = "";
     tot = suma_carrito + val;
@@ -167,10 +168,10 @@ app.get('/compra_carrito', function(req,res){
                       if(err){
                         res.send("Error encountered while updating");
                         return console.error(err.message);
-                      }ven= row.VENTAS
+                      }AuxV= row.VENTAS
                     });
-                    ven += 1
-                    db.run('UPDATE books SET ventas = ? WHERE nombre = ?', [ven,lib], function(err){
+                    AuxV += 1
+                    db.run('UPDATE books SET ventas = ? WHERE nombre = ?', [AuxV,lib], function(err){
                       if(err){
                         res.send("Error encountered while updating");
                         return console.error(err.message);
@@ -498,7 +499,7 @@ app.post('/delete', function(req,res){
 // Delete
 app.get('/deleteID', function(req,res){
   db.serialize(()=>{
-    db.run('DELETE FROM client WHERE id = ? AND nombre != ?', [0,'Alexa'], function(err) {
+    db.run('DELETE FROM pedidogrande WHERE idc = null', [], function(err) {
       if (err) {
         res.send("Error encountered while deleting");
         return console.error(err.message);
@@ -604,6 +605,7 @@ app.get('/total_pedidos2', function(req,res){
 
 //libro mas vendido
 app.post('/mas_vendido', function(req,res){
+  var top;
   db.serialize(()=>{
       db.all('SELECT ventas VENTAS, nombre NOMBRE FROM books', [], function(err,rows){
         if(err){
@@ -611,15 +613,16 @@ app.post('/mas_vendido', function(req,res){
           return console.error(err.message);
         }
         rows.forEach((rows) => {
-          if(rows.VENTAS > max){
-            max = rows.VENTAS
+          if(rows.VENTAS > MAXV){
+            MAXV = rows.VENTAS
             nom = rows.NOMBRE;
           }
+          top = nom;
           console.log(rows);
         });
-        console.log(max);
+        console.log(MAXV);
       });
-      db.all('SELECT nombre NOMBRE FROM books WHERE ventas = ?', [max], function(err,row){ 
+      db.all('SELECT nombre NOMBRE FROM books WHERE ventas = ?', [MAXV], function(err,row){ 
         if(err){
           res.send("Error encountered while displaying");
           return console.error(err.message);
@@ -629,9 +632,9 @@ app.post('/mas_vendido', function(req,res){
           <head><link rel = "stylesheet" href="style.css"></head>\
           <body>\
           <label for="fname">Nombre:</label><br>`;
-          pagina +=`<br><input type="text" id="nombre" name="nombre" value=${nom} disabled>\
+          pagina +=`<br><input type="text" id="nombre" name="nombre" value=${top} disabled>\
           <label for="fname">Ventas:</label>\
-          <input type="text" id="ventas" name="ventas" value=${max} disabled>\
+          <input type="text" id="ventas" name="ventas" value=${MAXV} disabled>\
           <br><iframe src="/image" style="border:none;" title="Iframe Example" height="400" width="600"></iframe>\
           <br><a href="/" style="a.button">Pagina de inicio</a>`;
         pagina +=`</body></html>`;
